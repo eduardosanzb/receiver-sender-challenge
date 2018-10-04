@@ -1,51 +1,116 @@
+# Challenge analysis
 
-# Backend Developer Job Applicant Test - Node.js
+## TLDR;
+**Client**: There was not much to do here; with a lack of access to the file `sender/index.js`, few improvements could have been done in `sender/transmit.js`.
 
-This is a framework for building a simple client and server in Node.js.  
+**Server**: The root of the challenge was more in the client side, even if we could had scale the server multiple times, the amount of requests sent by the client would be always the same.
 
-## Objectives
 
-The purpose of completing this test is to show us how you approach and solve a problem.  Ideally
-you should not spend more than 2-3 hours on this.
+## Client improvements
+The improvements performed were:
 
-- **State your assumptions.**  Anywhere you feel that the requirements are unclear please make
-an assumption and document that assumption.
-- **Describe Trade-offs.** When you're making a decision about using one design/approach vs. another
-try to make a quick note about why you made the choice you did.
-- **Provide tests.**  You should provide unit tests for the code that you write.  The choice of
-testing tools is up to you.
+- Reusing the same `http.agent` for the http requests.
+  - This small change would keep open the http connections as much as possible.
 
-## Requirements
+- Skipping http requests with empty body.
+  - Reducing the amount of unnecessary requests to keep the bandwidth clear as possible.
 
-This system simulates a client sending sensor readings to a remote server.  We would like you
-to imagine that the client and server are separated by a connection with limited bandwidth.  Please
-make an effort to minimize the number of bytes being sent between the client and server.  Messages
-don't need to be received in real-time, but try to keep latency below 2 seconds for any given
-message.
+There was a measure of time using the acceptance test and `console.time()`
 
-Please keep in mind that we are much more interested in seeing a well-designed and well-tested
-solution than we are in getting the absolute best data compression.  
+2 different sets of tests:
 
-You are being provided with a basic framework of both the client and server.  It includes a sample
-implementation using HTTP POSTs.  The example works, but we think you can do better!  Modify or
-replace the provided implementation.  (Don't modify the existing file-reading and event emitting
-logic.)
+1. With the delay at `sender/index.js`
+2. Without the delay at `sender/index.js`
 
-### Client
+With different configurations:
+* A - No modification at all
+* B - KeepAliveAgent, no gzip, one server
+* C - KeepAliveAgent, gzip, one server
+* D - KeepAliveAgent, gzip, cluster servers (4)
 
-The provided code will read the sensor readings from a file and provide them at random intervals
-(between 0 and 1000ms).  You job is to handle these messages and send them in an efficient manner
-to the server.  Make your changes in the `sender/transmit.js` file.
+| Configurations | Test 1     | Test 2     | Test 3 (no-delay) | Test 4 (no-delay) |
+| -------------- | ---------- | ---------- | ----------------- | ----------------- |
+| A              | 139434.357 | 153943.531 | 3490.944          | 3506.604          |
+| B              | 155486.863 | 147481.407 | 482.991           | 503.987           |
+| C              | 153986.301 | 142152.639 | 490.604           | 515.217           |
+| D              | 152597.001 | 149361.255 | 446.04            | 448.725           |
 
-### Server
+In a more easy way to digest the information:
+Performing the tests with the **random** delay shows completely opposite results with the different configurations.
 
-Please print the received messages to `STDOUT` as in the example.  If you have other things you want
-to output please use `STDERR`.
+| Test1                                    | Test2                                    |
+| ---------------------------------------- | ---------------------------------------- |
+| ![Test1](https://github.com/eduardosanzb/receiver-sender-challenge/raw/master/charts/Test%201.png) | ![Test2](https://github.com/eduardosanzb/receiver-sender-challenge/raw/master/charts/Test%202.png) |
 
-Make your changes in the `receiver/index.js` file.
+![Test1 and Test2](https://github.com/eduardosanzb/receiver-sender-challenge/raw/master/charts/Test%201%20and%20Test%202.png)
 
-## Test Script
+Completely opposite results; Can't get stable information about it.
 
-We have provided a `bash` script for doing acceptance testing.  It will run both the client and
-server.  It captures the output of the server, sorts it and then compares it to the input.  If they
-are the same the test passes.  This should help to evaluate your solution.
+In the tests without delay (or with a constant bandwidth limit), we can see clearly the performance boost wins from **reusing** the `http.agent`. And not much from using `gzip` (even adding a small amount of time).
+| Test3                                    | Test4                                    |
+| ---------------------------------------- | ---------------------------------------- |
+| ![Test3](https://github.com/eduardosanzb/receiver-sender-challenge/raw/master/charts/Test%203%20(no-delay).png) | ![Test4](https://github.com/eduardosanzb/receiver-sender-challenge/raw/master/charts/Test%204%20(no-delay).png) |
+
+![Test3 and Test4](https://github.com/eduardosanzb/receiver-sender-challenge/raw/master/charts/Test%203%20and%20Test%204.png)
+
+Both of the tests (no-delay) where consistent with their results.
+Also is worth to mention that the use of a cluster solution for the server (4 instances of the webserver) would not improve our bandwidth issue; But will allow us to perceive more requests per second.
+
+### Another client performance tests.
+From a lecture in a [blog](https://engineering.gosquared.com/optimise-node-http-server), where it states that declaring the size of the request body could reduce the amount of data sent. This would work if our body consisted on `strings`, but because our payload was a combination of `{}` and `[]`, the process of `stringify` added an overhead of data.
+
+Here the results:
+
+![bodyLength](https://github.com/eduardosanzb/receiver-sender-challenge/raw/master/charts/with%20normal%20and%20with%20length%20(10%20requests).png)
+
+### Conclusion
+
+Few performance improvements beyond keeping an active connection to the server could be performed.
+
+The real bottleneck in the client is a **random delay** `setTimeout` added in a stream, so the queue was under-performing out of the scope of the implementation.
+
+The implementation of a more sophisticated compression algorithm in the body of the request could only gain few improvements and increase the maintainability of the project (e.g. JSONC).
+
+
+
+## Server
+
+Again, the real performance bottleneck was underlying in the client side. Nevertheless the server could be improved for scalability and maintainability reasons.
+
+
+
+The first thing to be done was to decouple the web server logic to a different file with a proper unit test. The creation of a subdirectory `server/` was needed.
+
+Here we have two files:
+
+* `server/index.js`: The implementation of a web server specifically for this solution.
+* `server/test.js`: The unit test for the web server.
+
+The **two** real performance improvements for the server were:
+
+1. Block or ignore any request that were not type `POST`
+2. Ignore all the requests outside of the provided namespace `/end`
+
+
+
+Another potential performance tweak could be to `console.log` on each `.on('data')` event in the request. Because there was no reason to concat all the bytes in memory.
+
+```javascript
+...
+request
+	.on('data', (data) => { console.log(data.toString()) })
+	.on('end', this._sendResponse.bind(this))
+	...
+```
+
+
+
+The use of a `class` was based on a more easy to read the file.
+
+Now with the decoupling of the `Server` logic, in case of needing to scale our web application with multiples instances, we could easily use an approach with the `cluster` module. (Like in `startClusterSolution()`)
+
+Other nice win of decoupling the `Server` was the enabling of unit testing our web server. Simple tests like having correct responses when doing a `GET` request.
+
+### Conclusion
+
+I think the challenge in the server was to deliver a more maintainable and scalable solution. A lot of assumptions were made (e.g. Only allowing POST request). 
