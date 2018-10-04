@@ -8,5 +8,11 @@
     "start": "node index"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "jest": "^23.6.0"
+  },
+  "dependencies": {
+    "supertest": "^3.3.0"
+  }
 }

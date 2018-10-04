@@ -15,8 +15,7 @@ const parseAndDelay = new Transform({
     if(chunk === '') return callback()
     try {
       // set the a delay between 0 and 1000 ms
-      // let delay = Math.round(Math.random() * 1000)
-      let delay = 0;
+      let delay = Math.round(Math.random() * 1000)
       setTimeout((() => callback(null, JSON.parse(chunk))), delay)
     } catch(e) {
       callback(`Can't parse: ${chunk}. ${e}`)
@@ -24,7 +23,7 @@ const parseAndDelay = new Transform({
   }
 })
 
-console.time('sender')
+// console.time('sender')
 process.stdin
   .pipe(require('split')())
   .pipe(parseAndDelay)
@@ -32,8 +31,8 @@ process.stdin
     objectMode: true,
     transform: transmit
   }))
-  .on('error', console .error)
+  .on('error', console.error)
   .on('finish', () => {
     console.log('End of stream')
-    console.timeEnd('sender')
+    // console.timeEnd('sender')
   })
