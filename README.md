@@ -48,10 +48,10 @@ Performing the tests with the **random** delay shows completely opposite results
 Completely opposite results; Can't get stable information about it.
 
 In the tests without delay (or with a constant bandwidth limit), we can see clearly the performance boost wins from **reusing** the `http.agent`. And not much from using `gzip` (even adding a small amount of time).
-| Test3                                    | Test4                                    |
-| ---------------------------------------- | ---------------------------------------- |
-| ![Test3](https://github.com/eduardosanzb/receiver-sender-challenge/raw/master/charts/Test%203%20(no-delay).png) | ![Test4](https://github.com/eduardosanzb/receiver-sender-challenge/raw/master/charts/Test%204%20(no-delay).png) |
 
+| Test3| Test4 |
+| --- | --- |
+| ![Test3](https://github.com/eduardosanzb/receiver-sender-challenge/raw/master/charts/Test%203%20(no-delay).png) | ![Test4](https://github.com/eduardosanzb/receiver-sender-challenge/raw/master/charts/Test%204%20(no-delay).png) |
 ![Test3 and Test4](https://github.com/eduardosanzb/receiver-sender-challenge/raw/master/charts/Test%203%20and%20Test%204.png)
 
 Both of the tests (no-delay) where consistent with their results.
