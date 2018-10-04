@@ -15,7 +15,7 @@ The improvements performed were:
 - Skipping http requests with empty body.
   - Reducing the amount of unnecessary requests to keep the bandwidth clear as possible.
 
-There was a measure of time using the acceptance test and `console.time()`
+There was a measure of time using the acceptance test and `console.time()` in milliseconds
 
 2 different sets of tests:
 
@@ -28,6 +28,7 @@ With different configurations:
 * C - KeepAliveAgent, gzip, one server
 * D - KeepAliveAgent, gzip, cluster servers (4)
 
+**(All in milliseconds)**
 | Configurations | Test 1     | Test 2     | Test 3 (no-delay) | Test 4 (no-delay) |
 | -------------- | ---------- | ---------- | ----------------- | ----------------- |
 | A              | 139434.357 | 153943.531 | 3490.944          | 3506.604          |
