@@ -101,9 +101,9 @@ Another potential performance tweak could be to `console.log` on each `.on('data
 ```javascript
 ...
 request
-	.on('data', (data) => { console.log(data.toString()) })
-	.on('end', this._sendResponse.bind(this))
-	...
+ .on('data', (data) => { console.log(data.toString()) })
+ .on('end', this._sendResponse.bind(this))
+...
 ```
 
 
