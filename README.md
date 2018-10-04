@@ -52,6 +52,8 @@ In the tests without delay (or with a constant bandwidth limit), we can see clea
 | Test3| Test4 |
 | --- | --- |
 | ![Test3](https://github.com/eduardosanzb/receiver-sender-challenge/raw/master/charts/Test%203%20(no-delay).png) | ![Test4](https://github.com/eduardosanzb/receiver-sender-challenge/raw/master/charts/Test%204%20(no-delay).png) |
+
+
 ![Test3 and Test4](https://github.com/eduardosanzb/receiver-sender-challenge/raw/master/charts/Test%203%20and%20Test%204.png)
 
 Both of the tests (no-delay) where consistent with their results.
