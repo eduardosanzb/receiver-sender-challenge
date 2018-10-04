@@ -92,7 +92,7 @@ Here we have two files:
 The **two** real performance improvements for the server were:
 
 1. Block or ignore any request that were not type `POST`
-2. Ignore all the requests outside of the provided namespace `/end`
+2. Ignore all the requests outside of the provided namespace `/event`
 
 
 
@@ -108,7 +108,7 @@ request
 
 
 
-The use of a `class` was based on a more easy to read the file.
+The use of a `class` was based on a more easy to read the file decision (personal one).
 
 Now with the decoupling of the `Server` logic, in case of needing to scale our web application with multiples instances, we could easily use an approach with the `cluster` module. (Like in `startClusterSolution()`)
 
@@ -116,4 +116,4 @@ Other nice win of decoupling the `Server` was the enabling of unit testing our w
 
 ### Conclusion
 
-I think the challenge in the server was to deliver a more maintainable and scalable solution. A lot of assumptions were made (e.g. Only allowing POST request). 
+I think the challenge in the server was to deliver a more maintainable and scalable solution. Some assumptions were made (e.g. Only allowing POST request). 
